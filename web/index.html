@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vision Robot Agent</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>🤖 Vision Robot Agent Dashboard</h1>
+
+      <section class="panel">
+        <h2>Live Frame</h2>
+        <img id="liveFrame" alt="Live camera frame" />
+      </section>
+
+      <section class="panel">
+        <h2>Ask the Agent</h2>
+        <div class="ask-row">
+          <input id="questionInput" placeholder="What is happening right now?" />
+          <button id="askBtn">Ask</button>
+        </div>
+        <p id="answer">Answer will appear here.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Recent Scene Memory</h2>
+        <ul id="memoryList"></ul>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
