@@ -27,6 +27,7 @@ class Settings:
     host: str = "0.0.0.0"
     port: int = 8000
     log_level: str = "INFO"
+    log_file: str = "logs/conversation.log"
 
     @classmethod
     def from_env(cls, env_file: str | Path = ".env") -> "Settings":
@@ -44,6 +45,7 @@ class Settings:
             host=os.getenv("HOST", "0.0.0.0"),
             port=int(os.getenv("PORT", "8000")),
             log_level=os.getenv("LOG_LEVEL", "INFO"),
+            log_file=os.getenv("LOG_FILE", "logs/conversation.log"),
         )
 
 

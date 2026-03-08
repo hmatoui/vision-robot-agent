@@ -30,6 +30,7 @@ class AppContainer:
     scene_analyzer: SceneAnalyzer
     frame_sampler: FrameSampler
     agent: VisionAgent
+    conversation_history: list[dict[str, str]]
 
 
 def _build_container() -> AppContainer:
@@ -52,6 +53,7 @@ def _build_container() -> AppContainer:
         scene_analyzer=analyzer,
         frame_sampler=sampler,
         agent=agent,
+        conversation_history=[],
     )
 
 
@@ -61,9 +63,19 @@ def _create_app() -> FastAPI:
     logger.remove()
     logger.add(
         sink=lambda msg: print(msg, end=""),
-        level=settings.log_level.upper(),
+        level="WARNING",  # Only show warnings and errors in console
         backtrace=False,
         diagnose=False,
+    )
+    # Conversation logger that only logs conversations to file
+    conversation_logger = logger.bind(name="conversation")
+    conversation_logger.add(
+        settings.log_file,
+        level="INFO",
+        rotation="10 MB",
+        retention="1 week",
+        encoding="utf-8",
+        filter=lambda record: record["extra"].get("name") == "conversation"
     )
 
     app = FastAPI(title="Vision Robot Agent", version="1.0.0")
