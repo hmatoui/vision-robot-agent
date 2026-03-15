@@ -18,7 +18,11 @@ class Settings:
     openai_reasoning_model: str = "gpt-4.1-mini"
 
     video_source: str = "tests/sample_videos/test_video.mp4"
-    video_source_type: str = "auto"  # auto | file | webcam | rtsp
+    video_source_type: str = "auto"  # auto | file | webcam | rtsp | livekit
+
+    # LiveKit configuration
+    livekit_url: str = "ws://172.28.209.77:17880"
+    livekit_token: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzM2MTUxMTQsImlkZW50aXR5Ijoidmlld2VyLXdlYiIsImlzcyI6Im15a2V5IiwibmJmIjoxNzczNTI4NzE0LCJzdWIiOiJ2aWV3ZXItd2ViIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6ZmFsc2UsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6ImRldi1yb29tIiwicm9vbUpvaW4iOnRydWV9fQ.iHytBRBIRnyW2a9f1eKRUV4U27xZN3f8e2y7mdpkR3s"
 
     frame_sample_seconds: int = 5
     memory_retention_seconds: int = 60
@@ -39,6 +43,8 @@ class Settings:
             openai_reasoning_model=os.getenv("OPENAI_REASONING_MODEL", "gpt-4.1-mini"),
             video_source=os.getenv("VIDEO_SOURCE", "tests/sample_videos/test_video.mp4"),
             video_source_type=os.getenv("VIDEO_SOURCE_TYPE", "auto"),
+            livekit_url=os.getenv("LIVEKIT_URL", ""),
+            livekit_token=os.getenv("LIVEKIT_TOKEN", ""),
             frame_sample_seconds=int(os.getenv("FRAME_SAMPLE_SECONDS", "5")),
             memory_retention_seconds=int(os.getenv("MEMORY_RETENTION_SECONDS", "60")),
             memory_max_entries=int(os.getenv("MEMORY_MAX_ENTRIES", "12")),

@@ -39,7 +39,12 @@ def _build_container() -> AppContainer:
         retention_seconds=settings.memory_retention_seconds,
         max_entries=settings.memory_max_entries,
     )
-    stream = VideoStream(source=settings.video_source, source_type=settings.video_source_type)
+    stream = VideoStream(
+        source=settings.video_source,
+        source_type=settings.video_source_type,
+        livekit_url=settings.livekit_url,
+        livekit_token=settings.livekit_token
+    )
     analyzer = SceneAnalyzer(client=client, model=settings.openai_vision_model)
     sampler = FrameSampler(interval_seconds=settings.frame_sample_seconds)
     agent = VisionAgent(
@@ -60,7 +65,7 @@ def _build_container() -> AppContainer:
 def _create_app() -> FastAPI:
     container = _build_container()
 
-    logger.remove()
+    #logger.remove()
     logger.add(
         sink=lambda msg: print(msg, end=""),
         level="WARNING",  # Only show warnings and errors in console
@@ -89,6 +94,7 @@ def _create_app() -> FastAPI:
     )
 
     app.state.container = container
+    logger.info("App container initialized with video stream, scene memory, analyzer, and agent")
     app.include_router(build_router(container))
 
     web_dir = Path(__file__).resolve().parent.parent / "web"
@@ -98,6 +104,7 @@ def _create_app() -> FastAPI:
     @app.on_event("startup")
     async def startup_event() -> None:
         container.video_stream.start()
+        logger.info("Video stream started, initializing memory update loop")
 
         async def memory_loop() -> None:
             while True:
@@ -107,6 +114,13 @@ def _create_app() -> FastAPI:
                         description = container.scene_analyzer.describe_scene(frame)
                         container.scene_memory.add_observation(description)
                         logger.info(f"Memory updated: {description}")
+                except RuntimeError as exc:
+                    # Frame capture may take a moment to warm up, especially on slow sources.
+                    # Avoid spamming the log with repeated errors while waiting for the first frame.
+                    if "No frame available yet" in str(exc):
+                        logger.debug("Waiting for first video frame (stream warming up)")
+                        continue
+                    logger.error(f"Memory update loop error: {exc}")
                 except Exception as exc:  # noqa: BLE001
                     logger.error(f"Memory update loop error: {exc}")
                 await asyncio.sleep(0.5)

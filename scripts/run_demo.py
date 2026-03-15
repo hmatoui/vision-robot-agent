@@ -23,7 +23,12 @@ def main() -> None:
     """Run a local CLI question-answering loop over video input."""
     client = OpenAIClient(settings.openai_api_key)
     memory = SceneMemory(settings.memory_retention_seconds, settings.memory_max_entries)
-    stream = VideoStream(settings.video_source, settings.video_source_type)
+    stream = VideoStream(
+        settings.video_source,
+        settings.video_source_type,
+        livekit_url=settings.livekit_url,
+        livekit_token=settings.livekit_token
+    )
     analyzer = SceneAnalyzer(client, settings.openai_vision_model)
     sampler = FrameSampler(settings.frame_sample_seconds)
     agent = VisionAgent(client, memory, settings.openai_reasoning_model)

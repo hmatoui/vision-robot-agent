@@ -12,7 +12,7 @@ Designed for local file-based development, and then for camera/RTSP/ROS integrat
 
 ```mermaid
 flowchart TD
-    VS[Video Source\nlocal file / webcam / RTSP] --> FC[Frame Capture Service\nVideoStream]
+    VS[Video Source\nlocal file / webcam / RTSP / LiveKit] --> FC[Frame Capture Service\nVideoStream]
     FC --> FS[Frame Sampling\nFrameSampler]
     FS --> SA[Scene Analyzer\nOpenAI Vision]
     SA --> SM[Scene Memory Store\nTemporalStore]
@@ -81,7 +81,8 @@ vision-robot-agent/
 ## Features
 
 - Modular architecture for AI/robotics pipelines
-- Supports local file, webcam, RTSP source modes
+- Supports local file, webcam, RTSP, and LiveKit WebRTC source modes
+- LiveKit frame capture now properly stores the latest frame for `/frame` and memory updates
 - Frame sampling every 5s for scene memory updates
 - Temporal memory window (time + max-entry capped)
 - On-demand question answering (`/ask`) using latest frame + memory
@@ -114,8 +115,9 @@ Set `OPENAI_API_KEY` in `.env` to use OpenAI Vision. Without a key, the app runs
 - `OPENAI_VISION_MODEL` (default `gpt-4.1-mini`)
 - `OPENAI_REASONING_MODEL` (default `gpt-4.1-mini`)
 - `VIDEO_SOURCE` (default `tests/sample_videos/test_video.mp4`)
-- `VIDEO_SOURCE_TYPE` (`auto|file|webcam|rtsp`)
-- `FRAME_SAMPLE_SECONDS` (default `5`)
+- `VIDEO_SOURCE_TYPE` (`auto|file|webcam|rtsp|livekit`)
+- `LIVEKIT_URL` (for livekit source)
+- `LIVEKIT_TOKEN` (for livekit source)
 - `MEMORY_RETENTION_SECONDS` (default `60`)
 - `MEMORY_MAX_ENTRIES` (default `12`)
 - `HOST`, `PORT`, `LOG_LEVEL`
@@ -145,11 +147,40 @@ Example questions:
 - "What objects are visible?"
 - "What changed recently?"
 
-### Video Source Validation
+### Video Source Configuration
+
+The system supports multiple video source types:
+
+- **Local file**: `tests/sample_videos/test_video.mp4`
+- **Webcam**: Camera index (e.g., `0`)
+- **RTSP stream**: `rtsp://user:pass@host:554/stream`
+- **LiveKit WebRTC**: `ws://localhost:17880` (requires token and an active publisher in the room)
+
+#### Switching Sources
+
+Use the provided script to easily switch between sources:
 
 ```bash
-python scripts/load_video.py
+# Switch to local test video
+python scripts/switch_video_source.py file tests/sample_videos/test_video.mp4
+
+# Switch to webcam
+python scripts/switch_video_source.py webcam 0
+
+# Switch to RTSP
+python scripts/switch_video_source.py rtsp rtsp://user:pass@host:554/stream
+
+# Switch to LiveKit
+python scripts/switch_video_source.py livekit ws://localhost:17880 --livekit-token YOUR_TOKEN
 ```
+
+Or manually edit the `.env` file and update `VIDEO_SOURCE` and `VIDEO_SOURCE_TYPE`.
+
+#### Troubleshooting LiveKit / No Frame
+
+- If `/frame` returns `503 Service Unavailable`, the app cannot get a valid frame yet.
+- For LiveKit sources this usually means there is no active publisher in the room (or the token is invalid/expired).
+- Check the server logs for messages like `No frame available yet` or `Failed to connect to LiveKit room`.
 
 ## API Usage
 
